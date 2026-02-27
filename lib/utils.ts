@@ -26,11 +26,16 @@ export function verificarCancelamento<T>(
 
 // ─── Projeto ─────────────────────────────────────────────────────────────────
 
-export function resolverProjeto(): string {
-  const pai = resolve(import.meta.dirname, "..", "..");
-  const candidatos = readdirSync(pai, { withFileTypes: true });
+export function diretorioPai(): string {
+  return resolve(import.meta.dirname, "..", "..");
+}
 
-  for (const entry of candidatos) {
+export function buscarProjetos(): Array<{ nome: string; caminho: string }> {
+  const pai = diretorioPai();
+  const entradas = readdirSync(pai, { withFileTypes: true });
+  const projetos: Array<{ nome: string; caminho: string }> = [];
+
+  for (const entry of entradas) {
     if (!entry.isDirectory() || entry.name === "beta-tools") {
       continue;
     }
@@ -41,7 +46,7 @@ export function resolverProjeto(): string {
         const conteudo = readFileSync(pkg, "utf-8");
         const json = JSON.parse(conteudo) as Record<string, unknown>;
         if (Array.isArray(json.workspaces)) {
-          return candidato;
+          projetos.push({ nome: entry.name, caminho: candidato });
         }
       } catch {
         // package.json inválido, ignorar
@@ -49,9 +54,15 @@ export function resolverProjeto(): string {
     }
   }
 
-  throw new Error(
-    "Projeto beta não encontrado ao lado de beta-tools. Verifique se os diretórios estão no mesmo nível."
-  );
+  return projetos;
+}
+
+export function resolverProjeto(nome: string): string {
+  const caminho = resolve(diretorioPai(), nome);
+  if (!existsSync(resolve(caminho, "package.json"))) {
+    throw new Error(`Projeto "${nome}" não encontrado em ${caminho}.`);
+  }
+  return caminho;
 }
 
 // ─── Config ──────────────────────────────────────────────────────────────────

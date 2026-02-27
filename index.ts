@@ -1,8 +1,9 @@
-import { intro, log, multiselect, outro } from "@clack/prompts";
+import { intro, log, multiselect, outro, select, text } from "@clack/prompts";
 import pc from "picocolors";
 import { n8n } from "./integrations/n8n";
 import { storage } from "./integrations/storage";
 import {
+  buscarProjetos,
   jaInstalado,
   registrarTool,
   resolverProjeto,
@@ -13,8 +14,37 @@ const integracoes = [n8n, storage];
 
 intro("Beta Tools");
 
-const root = resolverProjeto();
-log.success(`Projeto encontrado: ${pc.dim(root)}`);
+// ─── Selecionar projeto ──────────────────────────────────────────────────────
+
+const projetos = buscarProjetos();
+let root: string;
+
+if (projetos.length === 1) {
+  const projeto = projetos[0] as (typeof projetos)[number];
+  root = projeto.caminho;
+  log.success(`Projeto detectado: ${pc.bold(projeto.nome)}`);
+} else if (projetos.length > 1) {
+  const escolha = await select({
+    message: "Selecione o projeto:",
+    options: projetos.map((p) => ({ value: p.nome, label: p.nome })),
+  });
+  verificarCancelamento(escolha);
+  root = resolverProjeto(escolha);
+} else {
+  const nome = await text({
+    message: "Nome do diretório do projeto:",
+    placeholder: "meu-projeto",
+    validate: (v) => {
+      if (!v) {
+        return "Nome é obrigatório.";
+      }
+    },
+  });
+  verificarCancelamento(nome);
+  root = resolverProjeto(nome);
+}
+
+log.info(`Destino: ${pc.dim(root)}`);
 
 // ─── Verificar integrações já instaladas ─────────────────────────────────────
 

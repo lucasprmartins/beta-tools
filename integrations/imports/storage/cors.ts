@@ -1,4 +1,3 @@
-// biome-ignore lint/correctness/noUndeclaredVariables: Bun é global no runtime
 const CryptoHasher = Bun.CryptoHasher;
 
 export interface CorsConfig {

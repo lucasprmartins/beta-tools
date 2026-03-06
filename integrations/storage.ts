@@ -1,6 +1,5 @@
 import { resolve } from "node:path";
-import { log, spinner } from "@clack/prompts";
-import { $ } from "bun";
+import { log } from "@clack/prompts";
 import {
   adicionarDocIntegracao,
   adicionarEnvSchema,
@@ -48,22 +47,6 @@ export const storage = {
     }
     log.success(`Arquivos copiados (${ARQUIVOS.length} arquivos)`);
 
-    const s = spinner();
-    s.start("Instalando dependências...");
-    const resultado =
-      await $`bun add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner`
-        .cwd(resolve(root, "packages/infra"))
-        .nothrow()
-        .quiet();
-    if (resultado.exitCode !== 0) {
-      s.stop("Falha ao instalar dependências");
-      log.error(
-        "Execute manualmente: bun add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner --cwd packages/infra"
-      );
-    } else {
-      s.stop("Dependências instaladas");
-    }
-
     await adicionarEnvSchema(
       resolve(root, "packages/infra/src/env.ts"),
       ENV_SCHEMA_CAMPOS
@@ -79,7 +62,7 @@ export const storage = {
       [
         "### Storage S3",
         "",
-        "- Funções: `gerarUrlUpload()`, `gerarUrlDownload()`, `removerObjeto()`, `listarObjetos()`",
+        "- Funções: `gerarUrlUpload()`, `gerarUrlDownload()`, `uploadObjeto()`, `downloadObjeto()`, `removerObjeto()`, `existeObjeto()`, `listarObjetos()`",
         "- Imagens: guardar a **key** no banco; na API, gerar presigned URL com `gerarUrlDownload(key, 900)`",
         `- Upload: gerar key no backend (\`"prefixo/\${crypto.randomUUID()}"\`), retornar com \`gerarUrlUpload(key, contentType, 900)\``,
       ].join("\n")

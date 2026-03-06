@@ -9,10 +9,10 @@ export interface CorsConfig {
   origins: string[];
 }
 
-function hmacSha256(key: ArrayBuffer | string, data: string): ArrayBuffer {
+function hmacSha256(key: Uint8Array | string, data: string): Uint8Array {
   const hmac = new CryptoHasher("sha256", key);
   hmac.update(data);
-  return hmac.digest().buffer as ArrayBuffer;
+  return hmac.digest();
 }
 
 function sha256Hex(data: string): string {
@@ -21,7 +21,7 @@ function sha256Hex(data: string): string {
   return hasher.digest("hex");
 }
 
-function toHex(buffer: ArrayBuffer): string {
+function toHex(buffer: Uint8Array): string {
   return Buffer.from(buffer).toString("hex");
 }
 
@@ -30,7 +30,7 @@ function getSignatureKey(
   dateStamp: string,
   region: string,
   service: string
-): ArrayBuffer {
+): Uint8Array {
   const kDate = hmacSha256(`AWS4${secretKey}`, dateStamp);
   const kRegion = hmacSha256(kDate, region);
   const kService = hmacSha256(kRegion, service);
